@@ -25,8 +25,6 @@ $_start = microtime(true);
 
 @set_include_path(get_include_path() . PATH_SEPARATOR . './inc/pear/');
 
-//bd 2uuugg;
-
 /**
  * Define globals
  * @globals 
@@ -115,6 +113,10 @@ if( !file_exists($cfg['tpl_cpl']) )
 
 if( $_SERVER['REDIRECT_PORT']+0 > 0 )
     $_SERVER['SERVER_PORT'] = $_SERVER['REDIRECT_PORT'];
+
+if( $_SERVER['SERVER_PORT'] != 80 ){
+    $cfg['port'] = $_SERVER['SERVER_PORT'];
+}
     
 $_REQUEST['lang'] = ($_GET['lang']) ? $_GET['lang'] : $_POST['lang'];
 
@@ -123,7 +125,7 @@ $kryn->prepareUrl();
 # Javascript
 if($_REQUEST['js'] == 'global.js'){
     $cfg['path'] = str_replace( 'index.php', '', $_SERVER['SCRIPT_NAME'] );
-	die("var path = '".$cfg['path']."'; var _path = '".$cfg['path']."'; var _baseUrl = 'http://".$_SERVER['SERVER_NAME'].$cfg['path']."'");
+	die("var path = '".$cfg['path']."'; var _path = '".$cfg['path']."'; var _baseUrl = 'http://".$_SERVER['SERVER_NAME'].($cfg['port']?':'.$cfg['port']:'').$cfg['path']."'");
 }
 
 $kryn->loadConfig();

@@ -339,10 +339,10 @@ class database {
                 }
     
                 //check if we need to force utf8 for mysql
-                if( ($this->type == 'mysql' || $this->type == 'mysqli') )
+                if( $pForceUtf8 && ($this->type == 'mysql' || $this->type == 'mysqli') )
                 	$this->pdo->query("SET NAMES 'utf8'");
                 
-                if( $pForceUtf8 && ($this->type == 'mysql' || $this->type == 'mysqli') )
+                if( $this->type == 'mysql' || $this->type == 'mysqli' )
                     $this->pdo->setAttribute(PDO::MYSQL_ATTR_USE_BUFFERED_QUERY, true);
                 
                 return $this->pdo;
@@ -364,6 +364,7 @@ class database {
         }
         
         public function fetch( $pStatement, $pRows = 1, $pMode = false ){
+            if( $pStatement === false ) return;
             if( !$this->usePdo ){
                 
                 if ( $pRows == 1 ){
@@ -500,13 +501,12 @@ class database {
         
         
         public static function isActive(){
-            global $kdb;
-            if( $kdb->type == 'mssql' ){
-                if( !$kdb->connection ) return false;
-            }
+            global $kdb, $cfg;
             
             if( !$kdb ) return false;
-            if( !$kdb->pdo ) return false;
+            if( $cfg['db_pdo'] == 1 && !$kdb->pdo ) return false;
+            if( $cfg['db_pdo'] == 0 && !$kdb->connection ) return false;
+            
             return true;
         }
 

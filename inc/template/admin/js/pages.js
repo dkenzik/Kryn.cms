@@ -1948,7 +1948,7 @@ var admin_pages = new Class({
             //cut length of 'admin'
             path = path.substr( 0, path.length-5 );
 
-            this.iframe.set('src',_path+'admin/pages/getTemplate/rsn:'+this.page.rsn+'/json:0/domain:'+location.host+'/?path='+path );
+            this.iframe.set('src',_path+'admin/pages/getTemplate/rsn:'+this.page.rsn+'/json:0/domain='+location.host+'/?path='+path );
 
         } else {
             this._loadContentLayout();
