@@ -96,30 +96,24 @@ class users extends baseModule{
                 case 'resizeImg':
                     json( self::resizeImg(getArgv('path')) );
                 case 'list':
-                    $content = $this->userList();
-                    break;
+                    return $this->userList();
                 case 'new':
-                    $content = $this->userNew();
-                    break;
+                    return $this->userNew();
                 case 'fields':
-                    $content = $this->fields();
-                    break;
+                    return $this->fields();
                 case 'edit':
-                    $content = $this->userEdit();
-                    break;
+                    return $this->userEdit();
                 case 'groups':
-                    $content = $this->groups();
-                    break;
+                    return $this->groups();
                 case 'userGroups':
-                    $content = $this->userGroups();
-                    break;
+                    return $this->userGroups();
                 case 'acl':
                     require( 'inc/modules/users/usersAcl.class.php' );
                     return usersAcl::init();
             }
             break;
         }
-        return $content;
+        return "Error";
     }
     
     public static function resizeImg( $pPath ){
@@ -166,35 +160,63 @@ class users extends baseModule{
     function install(){
         global $kryn;
         
+        // Add guest account
         dbDelete('system_user');
-        dbInsert('system_user', array( 'username' => 'Guest', 'created' => time(),
-            'activate' => 1 ));
+        dbInsert('system_user', array(
+            'rsn' => 0, 
+            'username' => 'Guest', 
+            'created' => time(),
+            'activate' => 1
+        ));
 
+        // Build serialized settings
         $settings = serialize(array(
             'userBg' => '/admin/images/userBgs/defaultImages/2.jpg',
             'adminLanguage' => 'en'
         ));
 
-        dbInsert('system_user', array( 'username' => 'admin', 'first_name' => 'Admini', 'last_name' => 'trator',
-            'passwd' => '21232f297a57a5a743894a0e4a801fc3', 'email' => 'admin@localhost', 'created' => time(),
-            'activate' => 1, 'settings' => $settings, 'widgets' => '[{"title":"Current users","type":"autotable","position":"right","columns":[["Date",80],["IP",90],["User"]],"category":"overview","refresh":60000,"code":"currentAdminLogins","extension":"users","desktop":1,"width":402,"height":152,"left":975,"top":91}]'
+        // Add admin account
+        dbInsert('system_user', array(
+            'rsn' => 1,
+            'username' => 'admin',
+            'first_name' => 'Admini',
+            'last_name' => 'strator',
+            'passwd' => '21232f297a57a5a743894a0e4a801fc3',
+            'email' => 'admin@localhost',
+            'created' => time(),
+            'activate' => 1,
+            'settings' => $settings,
+            'widgets' => '[{"title":"Current users","type":"autotable","position":"right","columns":[["Date",80],["IP",90],["User"]],"category":"overview","refresh":60000,"code":"currentAdminLogins","extension":"users","desktop":1,"width":402,"height":152,"left":975,"top":91}]'
         ));
-        dbUpdate( 'system_user', 'rsn = 1', array('rsn'=>0) );
-        dbUpdate( 'system_user', 'rsn = 2', array('rsn'=>1) );
+        
+        // Done in inserts, revert when not all databases support this [Ferdi] 
+        //dbUpdate( 'system_user', 'rsn = 1', array('rsn' => 0) );
+        //dbUpdate( 'system_user', 'rsn = 2', array('rsn' => 1) );
 
-        dbDelete('system_groupaccess');
-        dbInsert('system_groupaccess', array('group_rsn' => 1, 'user_rsn' => 1));
-
+        // Add groups
         dbDelete('system_groups');
-        dbInsert('system_groups', array('close' => 1, 'name' =>'Administratoren',
-            'description' => 'Die Administratoren'));
-        dbInsert('system_groups', array('close' => 1, 'name' =>'Benutzer',
-            'description' => 'Registrierte Benutzer'));
+        dbInsert('system_groups', array(
+            'close' => 1,
+            'name' =>'Administratoren',
+            'description' => 'Die Administratoren'
+        ));
+        dbInsert('system_groups', array(
+            'close' => 1, 
+            'name' =>'Benutzer',
+            'description' => 'Registrierte Benutzer'
+        ));
+        
+        // Add admin to administrators group
+        dbDelete('system_groupaccess');
+        dbInsert('system_groupaccess', array(
+            'group_rsn' => 1, 
+            'user_rsn' => 1
+        ));
 
         dbDelete('system_acl');
-        dbInsert('system_acl', array('type'=>1, 'target_type'=>1,'target_rsn'=>1,'code'=>'admin/%','access'=>1,'prio'=>11000));
-        dbInsert('system_acl', array('type'=>1, 'target_type'=>1,'target_rsn'=>0,'code'=>'admin/%','access'=>0,'prio'=>1001));
-        dbInsert('system_acl', array('type'=>1, 'target_type'=>1,'target_rsn'=>0,'code'=>'%',      'access'=>1,'prio'=>1000));
+        dbInsert('system_acl', array('type' => 1, 'target_type' => 1, 'target_rsn' => 1, 'code' => 'admin/%', 'access' => 1, 'prio' => 11000));
+        dbInsert('system_acl', array('type' => 1, 'target_type' => 1, 'target_rsn' => 0, 'code' => 'admin/%', 'access' => 0, 'prio' => 1001));
+        dbInsert('system_acl', array('type' => 1, 'target_type' => 1, 'target_rsn' => 0, 'code' => '%',       'access' => 1, 'prio' => 1000));
     }
     
     function getLinks(){

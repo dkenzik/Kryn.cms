@@ -8,7 +8,7 @@
     "en": "Create, edit users and groups. Manage rights(ACLs) and let users communicates via the build-in messaging system."
   },
   "system": true,
-  "version": "0.10.0",
+  "version": "0.11.0",
   "owner": "1",
   "category": "8",
   "community": "1",
