@@ -1,0 +1,37 @@
+--- Kryn.cms-current/inc/template/admin/js/ka.js	2011-07-28 18:20:45.000000000 +0200
++++ Kryn.cms/inc/template/admin/js/ka.js	2011-07-28 18:44:43.000000000 +0200
+@@ -175,12 +175,15 @@
+ ka.checkPageAccessHasCode = function( pCodes, pAction ){
+ 	var access = (pCodes.indexOf( pAction ) != -1 );
+ 	
++	return access;
++	
++	/*
++	Why did we do that?
+ 	if( !access ){
+ 	
+ 		var acl_all = false;
+ 		var acl_tab = false;
+ 		
+-		
+ 		$H(ka.settings.pageAcls).each(function(subAll,keyAll){
+ 		
+ 			$H(subAll).each(function(tabSubs, tabKey){
+@@ -197,6 +200,7 @@
+ 		
+ 	}
+ 	return access;
++	*/
+ }
+ 
+ ka.checkPageAccess = function( pRsn, pAction, pType ){
+@@ -249,6 +253,8 @@
+ 			parent_acl = true;
+ 		}
+ 	}
++	
++	
+ 	return access;
+ }
+ 
+    	

@@ -1,0 +1,68 @@
+--- Kryn.cms-current/inc/template/admin/js/pages.js	2011-07-28 19:42:28.000000000 +0200
++++ Kryn.cms/inc/template/admin/js/pages.js	2011-07-28 19:27:37.000000000 +0200
+@@ -1166,10 +1166,6 @@
+     showDomain: function( pDomain ){
+         if( this.oldLoadDomainRequest ) this.oldLoadDomainRequest.cancel();
+ 
+-        this.inDomainModus = true;
+-        this.viewType( 'domain' );
+-        this.changeType();
+-        
+         this.oldLoadDomainRequest = new Request.JSON({url: _path+'admin/pages/domain/get', noCache: 1, onComplete: function( pResult ){
+             
+             this.domainFields.each(function(item, key){
+@@ -1184,8 +1180,11 @@
+             this.win.setTitle ( pDomain.domain + ' - '+_('Domain edit') );
+             
+             this.deleteDomainGrp.show();
+-            if( !ka.checkPageAccess( pDomain.domain_rsn, 'deleteDomain', 'd' ) )
++            
++            if( !ka.checkPageAccess( pDomain.domain_rsn, 'deleteDomain', 'd' ) ){
+             	this.deleteDomainGrp.hide();
++            }
++            	
+ 
+             if( !ka.checkPageAccess( pDomain.domain_rsn, 'domain', 'd' ) ){
+             	this.viewButtons['domain'].hide();
+@@ -1243,6 +1242,12 @@
+ 
+         	var res = pResult.domain;
+             this.currentDomain = res;
++            
++            this.inDomainModus = true;
++            this.viewType( 'domain' );
++            
++            this.changeType();
++            
+             this.showDomainMaster( pDomain.domain_rsn );
+             
+             //set domain propertie to default
+@@ -1270,7 +1275,7 @@
+             this.domainFields['lang'].setValue( res.lang );
+             this.domainFields['master'].setValue( res.master );
+             this.domainFields['phplocale'].setValue( res.phplocale );
+-            this.domainFields['robots'].setValue( res.phplocale );
++            this.domainFields['robots'].setValue( res.robots );
+             this.domainFields['favicon'].setValue( res.favicon );
+             this.domainFields['path'].setValue( res.path );
+             this.domainFields['email'].setValue( res.email );
+@@ -1393,6 +1398,10 @@
+                 this.domainTrees.get(this.currentDomain.rsn ).reload();
+             }
+             this.currentDomain = req;
++            ka.settings.domains.each(function(d, index) {
++                if(d.rsn == req.rsn)
++                    ka.settings.domains[index] = req;
++            });
+         }.bind(this)}).post(req);
+     },
+ 
+@@ -1949,7 +1958,7 @@
+             //cut length of 'admin'
+             path = path.substr( 0, path.length-5 );
+ 
+-            this.iframe.set('src',_path+'admin/pages/getTemplate/rsn:'+this.page.rsn+'/json:0/domain:'+location.host+'/?path='+path );
++            this.iframe.set('src',_path+'admin/pages/getTemplate/rsn:'+this.page.rsn+'/json:0/domain='+location.host+'/?path='+path );
+ 
+         } else {
+             this._loadContentLayout();
