@@ -13,5 +13,5 @@
   "tags": {
     "en": ""
   },
-  "depends": ""
+  "depends": "kryn>=0.9.0,admin>=0.9.0"
 }
