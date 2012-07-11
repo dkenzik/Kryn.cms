@@ -91,8 +91,6 @@ function tInit(){
 
     if (!$tpl){
 
-        include('lib/smarty/Smarty.class.php');
-
         $tpl = new Smarty();
         $tpl->template_dir = './';
         $tpl->compile_dir = 'cache/smarty_compile/';

@@ -52,17 +52,17 @@ class krynAcl {
         $query = "
                 SELECT constraint_type, constraint_code, mode, access, sub, fields FROM %pfx%system_acl
                 WHERE
-                object = '$pObjectKey' AND
-                (mode = $pMode OR mode = 0) AND
+                object = ? AND
+                (mode = ? OR mode = 0) AND
                 (
-                    ( target_type = 1 AND target_rsn IN ($inGroups))
+                    ( target_type = 1 AND target_rsn IN (?))
                     OR
-                    ( target_type = 2 AND target_rsn = $userRsn)
+                    ( target_type = 2 AND target_rsn = ?)
                 )
                 ORDER BY prio DESC
         ";
 
-        $res = dbExec($query);
+        $res = dbExec($query, array($pObjectKey, $pMode, $inGroups, $userRsn));
         $rules = array();
 
         while ($rule = dbFetch($res)){

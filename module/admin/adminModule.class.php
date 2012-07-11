@@ -1117,40 +1117,79 @@ class $pClassName extends $pClass {
         }
     }
 
-    public static function dbInit($pName) {
-
+    public static function dbInit($pName, $pModel = '') {
+/*
         if (!$pName){
+            if (php_sapi_name() === 'cli') print "Sync all models from all extensions.\n\n";
 
-            $res = (php_sapi_name() === 'cli')?"Sync all tables from all extensions\n\n":array();
-
+            $res = array();
             foreach (kryn::$configs as $key => $config){
-                if (php_sapi_name() === 'cli' ){
-                    $res .= self::dbInit($key)."\n";
-                } else {
-                    $res = array_merge($res, self::dbInit($key));
-                }
+                if ($key != 'kryn')
+                    $res[$key] = self::dbInit($key)."\n";
             }
 
             return $res;
         }
 
-        $res = 'Sync tables in extension '.$pName.":\n\n";
+        if (php_sapi_name() === 'cli') print 'Sync models in extension '.$pName.":\n\n";
 
-        $config = kryn::getModuleConfig($pName);
-        $installedTables = adminDb::sync($config);
 
-        if (php_sapi_name() === 'cli'){
-            if (is_array($installedTables) && count($installedTables) > 0){
-                foreach ($installedTables as $table => $status){
-                    $res .= "\t$table ".($status?"installed":"updated").".\n";
-                }
-            } else {
-                $res .= "\tno tables to install.\n";
+        if (!$pModel){
+
+            $res = array();
+            $path = PATH_MODULE.$pName.'/models/*.dcm.xml';
+            $models = find($path, 1);
+            $path = str_replace('*', '(.*)', $path);
+            print_r($models);
+            foreach ($models as $model){
+                $model = preg_replace("#$path#", '$1', $model);
+                print "$model\n";
+                $res[] = self::dbInit($pName, $model);
+                print "$model done\n";
             }
             return $res;
-        } else {
-            return array($pName => $installedTables);
         }
+
+
+        if (php_sapi_name() === 'cli') print "Sync $pModel in $pName:\n\n";
+*/
+
+        $cmf = new Doctrine\ORM\Tools\DisconnectedClassMetadataFactory();
+        $cmf->setEntityManager(kryn::$em);
+        $metaData = $cmf->getAllMetadata();
+
+        $entityGenerator = new Doctrine\ORM\Tools\EntityGenerator();
+        $entityGenerator->setGenerateStubMethods(true);
+        $entityGenerator->setRegenerateEntityIfExists(true);
+        $entityGenerator->setUpdateEntityIfExists(true);
+        $entityGenerator->generate($metaData, PATH_CORE.'entities/');
+
+        $schemaTool = new Doctrine\ORM\Tools\SchemaTool(kryn::$em);
+        $schemaTool->updateSchema($metaData, true);
+        return;
+
+        print "hi\n";
+/*
+        $cmf = new Doctrine\ORM\Tools\DisconnectedClassMetadataFactory();
+        $cmf->setEntityManager(kryn::$em);
+
+        try {
+            $metaData = $cmf->getAllMetadata();
+        } catch (Doctrine\ORM\Mapping\MappingException $e){
+            $error = $e;
+        }
+        $entityGenerator = new Doctrine\ORM\Tools\EntityGenerator();
+        $entityGenerator->setGenerateStubMethods(true);
+        $entityGenerator->setRegenerateEntityIfExists(true);
+        $entityGenerator->setUpdateEntityIfExists(true);
+        $entityGenerator->generate($metaData, PATH_MODULE.$pName.'/');
+
+        $schemaTool = new Doctrine\ORM\Tools\SchemaTool(kryn::$em);
+        $res = $schemaTool->updateSchema($metaData, true);*/
+
+        //if (php_sapi_name() === 'cli') print $res;
+        return true;
+
     }
 
     public static function getPublishInfo($pName) {

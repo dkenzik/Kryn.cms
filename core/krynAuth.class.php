@@ -23,17 +23,17 @@ class krynAuth {
      * Some session informations
      * Modified by set() and get()
      * The system uses following items, so your should't override it:
-     *    language, time, refreshed, ip, user_rsn, page, useragent
+     *    language, time, refreshed, ip, user_id, page, useragent
      */
     private $session;
 
     /**
-     * For backwards compatibility the user_rsn from $this->user['rsn']
+     * For backwards compatibility the user_id from $this->user['id']
      */
-    public $user_rsn = 0;
+    public $user_id = 0;
 
     /**
-     * Same value as $user_rsn or $user['rsn']
+     * Same value as $user_id or $user['id']
      *
      * @var int
      */
@@ -146,7 +146,7 @@ class krynAuth {
 
         }
 
-        $this->loadUser($this->session['user_rsn']);
+        $this->loadUser($this->session['user_id']);
 
         if( $this->autoLoginLogout )
             $this->handleClientLoginLogout();
@@ -191,7 +191,7 @@ class krynAuth {
             } else {
 
                 $this->user = $user;
-                $this->user_rsn = $user['rsn'];
+                $this->user_id = $user['id'];
 
                 if (getArgv(1) == 'admin') {
 
@@ -201,11 +201,11 @@ class krynAuth {
 
                     klog('authentication', 'Successfully login to administration for user ' . $this->user['username']);
 
-                    if ($user['rsn'] > 0) {
-                        dbUpdate('system_user', 'rsn = ' . $user['rsn'], array('lastlogin' => time()));
+                    if ($user['id'] > 0) {
+                        dbUpdate('system_user', 'rsn = ' . $user['id'], array('lastlogin' => time()));
                         $this->clearCache();
                     }
-                    json(array('user_rsn' => $this->user_rsn, 'sessionid' => $this->token,
+                    json(array('user_id' => $this->user_id, 'sessionid' => $this->token,
                         'username' => getArgv('username'), 'lastlogin' => $this->user['lastlogin'],
                         'lang' => $this->user['settings']['adminLanguage']));
                 }
@@ -227,7 +227,7 @@ class krynAuth {
      */
     public function setUser($pUserRsn, $pLoadUser = true) {
 
-        $this->set('user_rsn', $pUserRsn); //will be saved at shutdown
+        $this->set('user_id', $pUserRsn); //will be saved at shutdown
 
         if ($pLoadUser)
             $this->loadUser($pUserRsn);
@@ -257,7 +257,7 @@ class krynAuth {
 
         //Search user in the system_user table. If not exist, create it
         $user = $this->getOrCreateUser($pLogin);
-        $this->setUser($user['rsn']);
+        $this->setUser($user['id']);
         $this->syncStore();
 
         return $user;
@@ -292,7 +292,7 @@ class krynAuth {
             $this->firstLogin($user);
         }
 
-        return $this->getUser($user['rsn']);
+        return $this->getUser($user['id']);
     }
 
 
@@ -338,9 +338,9 @@ class krynAuth {
                 if (preg_match('/' . $item['login'] . '/', $pUser['username']) == 1) {
                     dbInsert('system_groupaccess', array(
                         'group_rsn' => $item['group'],
-                        'user_rsn' => $pUser['rsn']
+                        'user_id' => $pUser['id']
                     ));
-                    $this->clearCache($pUser['rsn']);
+                    $this->clearCache($pUser['id']);
                 }
 
             }
@@ -355,8 +355,8 @@ class krynAuth {
      * @internal
      */
     private function clearCache($pUserRsn = false) {
-        if (!$pUserRsn) $this->user_rsn;
-        $this->getUser($this->user_rsn, true);
+        if (!$pUserRsn) $this->user_id;
+        $this->getUser($this->user_id, true);
     }
 
     /**
@@ -365,8 +365,8 @@ class krynAuth {
     public function loadUser($pUserRsn) {
 
         $this->user =& $this->getUser($pUserRsn);
-        $this->user_rsn = $this->user['rsn'];
-        $this->id = $this->user['rsn'];
+        $this->user_id = $this->user['id'];
+        $this->id = $this->user['id'];
 
         tAssign('user', $this->user);
     }
@@ -388,7 +388,7 @@ class krynAuth {
         if ($pUserId == 0){
 
             return array(
-                'rsn' => 0,
+                'id' => 0,
                 'username' => 'Guest',
                 'groups' => array(0),
                 'inGroups' => '0'
@@ -398,7 +398,7 @@ class krynAuth {
         if ($result == false || $pForceReload) {
             $result = dbExfetch("SELECT * FROM %pfx%system_user WHERE rsn = " . $pUserId, 1);
 
-            if ($result['rsn'] <= 0) return false;
+            if ($result['id'] <= 0) return false;
 
             $result['settings'] = unserialize($result['settings']);
 
@@ -409,7 +409,7 @@ class krynAuth {
             $result['groups'] = array();
             $statement = dbExec(
                 'SELECT group_rsn FROM %pfx%system_groupaccess
-    		  WHERE user_rsn = ' . $pUserId);
+    		  WHERE user_id = ' . $pUserId);
 
             while ($row = dbFetch($statement)) {
                 $result['groups'][] = $row['group_rsn'];
@@ -429,7 +429,7 @@ class krynAuth {
     }
 
     /**
-     * Change the user_rsn in the session object. Means: is logged out then
+     * Change the user_id in the session object. Means: is logged out then
      */
     public function logout() {
         $this->setUser(0, true);
@@ -470,7 +470,7 @@ class krynAuth {
     public function syncStore( $pForce = false ) {
 
         if (!$pForce && $this->needSync != true) return;
-        $session['user_rsn'] = $this->user['rsn'];
+        $session['user_id'] = $this->user['id'];
 
         if ($this->config['session_storage'] == 'database') {
 
@@ -480,7 +480,7 @@ class krynAuth {
             $session['ip'] = $this->session['ip'];
 
             $sessionExtra = $this->session;
-            $notInExtra = array('language', 'time', 'refreshed', 'ip', 'user_rsn', 'page', 'useragent', 'extra');
+            $notInExtra = array('language', 'time', 'refreshed', 'ip', 'user_id', 'page', 'useragent', 'extra');
             foreach ($notInExtra as $temp)
                 unset($sessionExtra[$temp]);
 
@@ -506,7 +506,7 @@ class krynAuth {
     /**
      * Stores additional information into the current session.
      * The system uses following codes, so your should't override it:
-     *    language, time, refreshed, ip, user_rsn, page, useragent
+     *    language, time, refreshed, ip, user_id, page, useragent
      */
     public function set($pCode, $pValue) {
 
@@ -556,7 +556,7 @@ class krynAuth {
         }
 
         $session = array(
-            'user_rsn' => 0,
+            'user_id' => 0,
             'time' => time(),
             'ip' => $_SERVER['REMOTE_ADDR'],
             'page' => kryn::getRequestPageUrl(true),
@@ -581,15 +581,15 @@ class krynAuth {
     public function newSessionDatabase() {
 
         $token = $this->generateSessionId();
-        $row = dbExfetch("SELECT rsn FROM %pfx%system_sessions WHERE id = '$token'", 1);
-        if ($row['rsn'] > 0) {
+        $row = dbExfetch("SELECT id FROM %pfx%system_sessions WHERE id = '$token'", 1);
+        if ($row['id']) {
             //another session with this id exists
             return false;
         }
 
         $session = array(
             'id' => $token,
-            'user_rsn' => 0,
+            'user_id' => 0,
             'time' => time(),
             'ip' => $_SERVER['REMOTE_ADDR'],
             'page' => kryn::getRequestPageUrl(true),
@@ -640,7 +640,6 @@ class krynAuth {
             return false;
         }
 
-        unset($row['rsn']);
         unset($row['created']);
         unset($row['id']);
 
@@ -713,15 +712,15 @@ class krynAuth {
             $saltField = '';
 
         $row = dbExfetch("
-            SELECT rsn, passwd $saltField
+            SELECT id, passwd $saltField
             FROM %pfx%system_user
             WHERE 
-                    rsn > 0
+                    id > 0
                 AND $userColumn = '$login'
                 AND (auth_class IS NULL OR auth_class = 'kryn')",
             1);
 
-        if ($row['rsn'] > 0) {
+        if ($row['id'] > 0) {
 
             if ($row['passwd_salt']) {
                 $hash = self::getHashedPassword($pPassword, $row['passwd_salt']);

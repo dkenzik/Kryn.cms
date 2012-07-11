@@ -52,7 +52,6 @@ class admin {
 
         require(PATH_MODULE . 'admin/adminWindow.class.php');
         require(PATH_MODULE . 'admin/adminModule.class.php');
-        require(PATH_MODULE . 'admin/adminDb.class.php');
         require(PATH_MODULE . 'admin/adminLayout.class.php');
         require(PATH_MODULE . 'admin/adminPages.class.php');
         require(PATH_MODULE . 'admin/adminSettings.class.php');

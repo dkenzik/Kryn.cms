@@ -174,6 +174,7 @@ class krynCache {
      * @return ref to object
      */
     public function &get($pCode, $pWithoutValidationCheck = false) {
+        global $kcache;
 
         if (!$this->cache[$pCode]){
             switch ($this->type) {
@@ -194,10 +195,13 @@ class krynCache {
                 case 'files':
 
                     $cacheCode = 'krynPhpCache_' . $pCode;
-                    $path = $this->config['files_path'] . $pCode . '.php';
+                    $path = $this->config['files_path'] . urlencode($pCode) . '.php';
 
                     if (!file_exists(PATH . $path)) return false;
-                    include(PATH . $path);
+                        include(PATH . $path);
+
+                    if ($kcache[$cacheCode]['type'] == 'object')
+                        $kcache[$cacheCode]['value'] = unserialize($kcache[$cacheCode]['value']);
 
                     $this->cache[$pCode] =& $kcache[$cacheCode];
 
@@ -248,10 +252,7 @@ class krynCache {
             }
         }
 
-        if ($this->withInvalidationChecks)
-            return $this->cache[$pCode]['value'];
-        else
-            return $this->cache[$pCode];
+        return $this->cache[$pCode]['value'];
 
     }
 
@@ -297,13 +298,13 @@ class krynCache {
         else
             $pTimeout += time();
 
-        if ($this->withInvalidationChecks) {
-            $pValue = array(
-                'timeout' => $pTimeout,
-                'time' => time(),
-                'value' => $pValue
-            );
-        }
+        $pValue = array(
+            'timeout' => $pTimeout,
+            'time' => time(),
+            'value' => $pValue
+        );
+
+
 
         $this->cache[$pCode] = $pValue;
 
@@ -322,17 +323,22 @@ class krynCache {
 
             case 'files':
 
-                $cacheCode = 'krynPhpCache_' . $pCode;
+                if (is_object($pValue['value'])){
+                    $pValue['type'] = 'object';
+                    $pValue['value'] = serialize($pValue['value']);
+                }
+
+                $cacheCode = 'krynPhpCache_' . urlencode($pCode);
                 $varname = '$kcache[\'' . $cacheCode . '\'] ';
 
                 $phpCode = "<" . "?php \n$varname = " . var_export($pValue, true) . ";\n ?" . ">";
 
                 if (class_exists('kryn'))
-                    kryn::fileWrite($this->config['files_path'] . $pCode . '.php', $phpCode);
+                    kryn::fileWrite($this->config['files_path'] . urlencode($pCode) . '.php', $phpCode);
                 else
-                    file_put_contents($this->config['files_path'] . $pCode . '.php', $phpCode);
+                    file_put_contents($this->config['files_path'] . urlencode($pCode) . '.php', $phpCode);
 
-                return file_exists(PATH . $this->config['files_path'] . $pCode . '.php');
+                return file_exists(PATH . $this->config['files_path'] . urlencode($pCode) . '.php');
 
             case 'apc':
 

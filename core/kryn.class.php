@@ -269,7 +269,7 @@ class kryn {
      * @var array
      * @static
      */
-    public static $extensions;
+    public static $extensions = array();
 
     /**
      * Contains all installed themes
@@ -284,6 +284,14 @@ class kryn {
      * @static
      */
     public static $config;
+
+    /**
+     * EntityManager of Doctrine
+     *
+     * @var EntityManager
+     * @static
+     */
+    public static $em;
 
     /**
      * Ref to kryn::$config for compatibility
@@ -559,22 +567,11 @@ class kryn {
     }
 
     public static function loadActiveModules() {
-
-        $extensions =& kryn::getCache('activeModules');
-
-        if (!$extensions || is_array($extensions[0])) {
-            $extensions = array();
-            $dbMods =
-                dbExFetch('SELECT name FROM %pfx%system_modules WHERE activated = 1 AND name != \'admin\' AND name != \'users\'', -1);
-            foreach ($dbMods as &$mod) {
-                $extensions[] = $mod['name'];
-            }
-            kryn::setCache('activeModules', $extensions);
-        }
-
         $extensions[] = 'kryn';
         $extensions[] = 'admin';
         $extensions[] = 'users';
+
+        if (kryn::$config['activeExtensions']) $extensions = array_merge($extensions,kryn::$config['activeExtensions']);
         kryn::$extensions = $extensions;
     }
 
@@ -667,6 +664,7 @@ class kryn {
                 }
                 if ($config['objects']){
                     foreach ($config['objects'] as $key => &$definition) {
+                        /**
                         $tables = database::getTablesFromObject($key);
                         if ($tables){
                             foreach ($tables as $tKey => $tDef){
@@ -675,7 +673,7 @@ class kryn {
                                 else
                                     kryn::$tables[strtolower($tKey)] = $tDef;
                             }
-                        }
+                        }*/
                     }
                 }
 
@@ -985,7 +983,6 @@ class kryn {
      * @static
      */
     public static function redirect($pUrl = '') {
-        global $cfg;
 
 
         if (strpos($pUrl, 'http') === false && kryn::$domain) {
@@ -1154,57 +1151,56 @@ class kryn {
      * @internal
      */
     public static function initConfig() {
-        global $cfg;
 
-        $cfg['path'] = str_replace('index.php', '', $_SERVER['SCRIPT_NAME']);
+        kryn::$config['path'] = str_replace('index.php', '', $_SERVER['SCRIPT_NAME']);
 
-        $cfg['templatepath'] = $cfg['path'] . 'media';
+        kryn::$config['templatepath'] = kryn::$config['path'] . 'media';
 
-        if (!$cfg['sessiontime'] && !$cfg['session_timeout'])
-            $cfg['session_timeout'] = 3600;
+        if (!kryn::$config['sessiontime'] && !kryn::$config['session_timeout'])
+            kryn::$config['session_timeout'] = 3600;
 
-        if ($cfg['sessiontime'] && !$cfg['session_timeout'])
-            $cfg['session_timeout'] = $cfg['sessiontime'];
+        if (kryn::$config['sessiontime'] && !kryn::$config['session_timeout'])
+            kryn::$config['session_timeout'] = kryn::$config['sessiontime'];
 
-        if (!$cfg['session_tokenid']) {
-            $cfg['session_tokenid'] = 'krynsessionid_ba';
+        if (!kryn::$config['session_tokenid']) {
+            kryn::$config['session_tokenid'] = 'krynsessionid_ba';
         }
 
-        if (!$cfg['auth_class'])
-            $cfg['auth_class'] = 'kryn';
+        if (!kryn::$config['auth_class'])
+            kryn::$config['auth_class'] = 'kryn';
 
-        if (!$cfg['show_banner'])
-            $cfg['show_banner'] = 1;
+        if (!kryn::$config['show_banner'])
+            kryn::$config['show_banner'] = 1;
 
-        if (!$cfg['session_storage'])
-            $cfg['session_storage'] = 'database';
+        if (!kryn::$config['session_storage'])
+            kryn::$config['session_storage'] = 'database';
 
-        if (!$cfg['cache_type'])
-            $cfg['cache_type'] = 'files';
+        if (!kryn::$config['cache_type'])
+            kryn::$config['cache_type'] = 'files';
 
-        tAssignRef('path', $cfg['path']);
-        tAssignRef("cfg", $cfg);
+        tAssignRef('path', kryn::$config['path']);
+        tAssignRef("cfg", kryn::$config);
 
-        if (!$cfg['cronjob_key']) {
-            $cfg['cronjob_key'] = dechex(time() / mt_rand(100, 500));
-            kryn::fileWrite('inc/config.php', "<?php \n\$cfg = " . var_export($cfg, true) . "\n?>");
+        if (!kryn::$config['cronjob_key']) {
+            kryn::$config['cronjob_key'] = dechex(time() / mt_rand(100, 500));
+            kryn::fileWrite('inc/config.php', "<?php \n\$cfg = " . var_export(kryn::$config, true) . "\n?>");
         }
 
-        if (!$cfg['passwd_hash_key']) {
-            $cfg['passwd_hash_compatibility'] = 1;
-            $cfg['passwd_hash_key'] = krynAuth::getSalt(32);
-            kryn::fileWrite('inc/config.php', "<?php \n\$cfg = " . var_export($cfg, true) . "\n?>");
+        if (!kryn::$config['passwd_hash_key']) {
+            kryn::$config['passwd_hash_compatibility'] = 1;
+            kryn::$config['passwd_hash_key'] = krynAuth::getSalt(32);
+            kryn::fileWrite('inc/config.php', "<?php \n\$cfg = " . var_export(kryn::$config, true) . "\n?>");
         }
 
-        if ($cfg['cache_type'] == 'files') {
+        if (kryn::$config['cache_type'] == 'files') {
 
-            if (!$cfg['cache_params'] || $cfg['cache_params']['files_path'] == '') {
-                $cfg['cache_params']['files_path'] = 'cache/object/';
+            if (!kryn::$config['cache_params'] || kryn::$config['cache_params']['files_path'] == '') {
+                kryn::$config['cache_params']['files_path'] = 'cache/object/';
             }
         }
 
         try {
-            kryn::$cache = new krynCache($cfg['cache_type'], $cfg['cache_params']);
+            kryn::$cache = new krynCache(kryn::$config['cache_type'], kryn::$config['cache_params']);
         } catch (Exception $e){
             kryn::internalError($e);
         }
@@ -1214,16 +1210,13 @@ class kryn {
         else
             kryn::$cacheFast = new krynCache('files', array('files_path' => 'cache/object/'));
 
-        if (!$cfg['media_cache'])
-            $cfg['media_cache'] = 'cache/media/';
+        if (!kryn::$config['media_cache'])
+            kryn::$config['media_cache'] = 'cache/media/';
 
-        if (!is_dir($cfg['media_cache'])) {
-            if (!@mkdir($cfg['media_cache']))
-                kryn::internalError('Can not create folder for template caching: ' . $cfg['media_cache']);
+        if (!is_dir(kryn::$config['media_cache'])) {
+            if (!@mkdir(kryn::$config['media_cache']))
+                kryn::internalError('Can not create folder for template caching: ' . kryn::$config['media_cache']);
         }
-
-        kryn::$config =& $cfg;
-        kryn::$cfg =& $cfg;
     }
 
     public static function initAuth() {
@@ -1819,9 +1812,9 @@ class kryn {
 
             if ($domain['path'] != '') {
                 tAssignRef('path', $domain['path']);
-                $cfg['path'] = $domain['path'];
-                $cfg['templatepath'] = $domain['path'] . 'media';
-                tAssignRef('cfg', $cfg);
+                kryn::$config['path'] = $domain['path'];
+                kryn::$config['templatepath'] = $domain['path'] . 'media';
+                tAssignRef('cfg', kryn::$config);
                 tAssignRef('_path', $domain['path']);
             }
 
@@ -2350,7 +2343,7 @@ class kryn {
         }
 
         if (kryn::$disableSearchEngine == false) {
-            $resCode = krynSearch::createPageIndex(kryn::$pageHtml);
+            //$resCode = krynSearch::createPageIndex(kryn::$pageHtml);
 
             if ($resCode == 2) {
                 kryn::notFound('invalid-arguments');
@@ -2480,11 +2473,12 @@ class kryn {
     /**
      * Sets a content to the specified cache-key.
      *
-     * @param string  $pCode
-     * @param string  $pValue
-     * @param integer $pTimeout In seconds. Default is one hour
-     *
      * @static
+     * @param string $pCode
+     * @param mixed  $pValue
+     * @param bool|integer $pTimeout
+     *
+     * @return bool|mixed
      */
     public static function setCache($pCode, $pValue, $pTimeout = false) {
         if (kryn::$cache)
@@ -2495,13 +2489,14 @@ class kryn {
     /**
      * Marks a code as invalidate until $pTime
      *
-     * @param string  $pCode
-     * @param integer $pTime Timestamp. Default is time()
+     * @static
+     * @param $pCode
+     * @param bool|integer $pTime
+     * @return bool
      */
-
     public static function invalidateCache($pCode, $pTime = false) {
-        if (kryn::$cache)
-            return kryn::$cache->invalidate($pCode, $pTime);
+        if (kryn::$cache && kryn::$cache->invalidate($pCode, $pTime))
+            return true;
         return false;
     }
 
@@ -2538,6 +2533,7 @@ class kryn {
      * @param string $pValue
      *
      * @static
+     * @return boolean|cached ref
      */
     public static function setFastCache($pCode, $pValue) {
         return kryn::$cacheFast?kryn::$cacheFast->set($pCode, $pValue):false;

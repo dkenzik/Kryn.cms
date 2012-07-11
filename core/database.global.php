@@ -1,6 +1,5 @@
 <?php
 
-
 /*
  * This file is part of Kryn.cms.
  *
@@ -24,48 +23,54 @@
  * Depending on the current database this functions choose the proper escape
  * function.
  *
- * @param string $p
- * @param int $pEscape
+ * @param string     $pValue
+ * @param int|string $pType 1=(default) normale escape, 2=remove all except a-zA-Z0-9-_, or PDO::PARAM_*=
+ *                   PDO::PARAM_STR, PDO::PARAM_INT, etc
  *
+ * @global
  * @return string Escaped string
  */
-function esc($p, $pEscape = 1) {
-    global $kdb, $cfg;
+function esc($pValue, $pType = 1) {
 
-
-    if (is_array($p)) {
-        foreach ($p as $k => $v) {
-            $p2[$k] = esc($v);
-        }
-        return $p2;
+    if ($pType == 1){
+        $pType = is_string($pValue) ? PDO::PARAM_STR : PDO::PARAM_INT;
     }
 
-    if ($pEscape == 2) {
-        return preg_replace('/[^a-zA-Z0-9-_]/', '', $p);
+    if ($pType == 2) {
+        return preg_replace('/[^a-zA-Z0-9-_]/', '', $pValue);
     }
 
-    dbConnect();
-    if ($cfg['db_pdo'] + 0 == 1 || $cfg['db_pdo'] === '') {
-        return substr(substr($kdb->pdo->quote($p), 1), 0, -1);
-    } else {
-        switch ($cfg['db_type']) {
-            case 'sqlite':
-                return sqlite_escape_string($p);
-            case 'mysql':
-                return mysql_real_escape_string($p, $kdb->connection);
-            case 'mysqli':
-                return mysqli_real_escape_string($kdb->connection, $p);
-            case 'postgresql':
-                return pg_escape_string($kdb->connection, $p);
-        }
-    }
+    return kryn::$em->getConnection()->quote($pValue, $pType);
 }
+
+/**
+ * Returns the EntityManager.
+ *
+ * @return EntityManager
+ */
+function dbEm(){
+    return kryn::$em;
+}
+
+/**
+ * Gets the repository for an entity class.
+ *
+ * @param string $pObject The name of the entity.
+ * @return EntityRepository The repository class.
+ */
+function dbObjects($pObject){
+    return kryn::$em->getRepository($pObject);
+}
+
 
 /**
  * Quotes column or table names and return pValue with quotes surrounded and
  * lowercase (because table names and column names have to be lowercased)
  *
  * @param string|array $pValue Possible is "test, bla, blub" or just "foo". If array("foo", "bar") it returns a array again
+ * @param string $pTable
+ *
+ * @global
  * @return mixed
  */
 function dbQuote($pValue, $pTable = ''){
@@ -84,39 +89,7 @@ function dbQuote($pValue, $pTable = ''){
     if ($pTable && strpos($pValue, '.') === false){
         return dbQuote($pTable).'.'.dbQuote($pValue);
     }
-    return strtolower((kryn::$config['db_type'] == 'mysql') ? '`'.$pValue.'`': '"'.$pValue.'"');
-}
-
-/**
- * Connects to the database
- *
- * @param bool $pReadOnly If true, we try to connect to a slave (if defined)
- *
- * @return mixed
- */
-function dbConnect($pReadOnly = false) {
-    global $kdb, $cfg;
-
-    if ($kdb) return;
-
-    //todo, handle $pReadOnly
-
-    $kdb = new database(
-        $cfg['db_type'],
-        $cfg['db_server'],
-        $cfg['db_user'],
-        $cfg['db_passwd'],
-        $cfg['db_name'],
-        ($cfg['db_pdo'] + 0 == 1 || $cfg['db_pdo'] === '') ? true : false,
-        ($cfg['db_forceutf8'] == '1') ? true : false
-    );
-
-    $kdb->readOnly = $pReadOnly;
-
-    if (!$kdb->isActive()) {
-        kryn::internalError('Can not connect to the database. Error: ' . $kdb->lastError());
-    }
-
+    return kryn::$em->getConnection()->quoteIdentifier($pValue);
 }
 
 /**
@@ -130,37 +103,20 @@ function dbBegin(){
 }
 
 /**
- * Reverts back to the original version before the call of dbBegin().
- * This also unlocks all locked tables.
+ * Cancel any database changes done during the current transaction.
+ *
  */
 function dbRollback(){
-
-    if (database::$activeLock && kryn::$config['db_type'] == 'mysql'){
-        dbLock('UNLOCK TABLES');
-        database::$activeLock = false;
-    }
-
-    if (!database::$activeTransaction) return;
-    dbExec('ROLLBACK');
-    database::$activeTransaction = false;
+    kryn::$em->getConnection()->rollback();
 }
 
 /**
- * Stores all changed between dbBegin() and dbCommit()
- * This also unlocks all locked tables.
+ * Commits the current transaction.
  *
  */
 function dbCommit(){
 
-    if (database::$activeLock && kryn::$config['db_type'] == 'mysql'){
-        dbLock('UNLOCK TABLES');
-        database::$activeLock = false;
-    }
-
-    if (!database::$activeTransaction) return;
-
-    dbExec('COMMIT');
-    database::$activeTransaction = false;
+    kryn::$em->getConnection()->commit();
 }
 
 /**
@@ -209,7 +165,7 @@ function dbLock($pTable, $pMode = 'read'){
 /**
  *
  * Unlock tables.
- * To be psotgresql compatible, this fires dbCommit() and commits therefore the active transaction.
+ * To be postgresql compatible, this fires dbCommit() and commits therefore the active transaction.
  *
  */
 function dbUnlockTables(){
@@ -218,45 +174,45 @@ function dbUnlockTables(){
 
 
 /**
- * Execute a query and return the items
- * If you want to have a exact count of lines use SQL's LIMIT with $pRowCount as -1,
- * except you really know what you'r doing.
+ * Execute a query and return the item
  *
- * @param string  $pSql      The SQL
- * @param integer $pRowCount How much rows you want. Use -1 for all, with 1 you'll get direct the array without a list.
+ * @param string  $pQuery  The SQL query to execute.
+ * @param array   $pParams The parameters to bind to the query, if any.
  *
  * @return array
  */
-function dbExFetch($pSql, $pRowCount = 1) {
-    global $kdb, $cfg;
+function dbExFetch($pQuery, $pParams = null) {
+    return dbExec($pQuery, $pParams)->fetch(PDO::FETCH_ASSOC);
+}
 
-    dbConnect();
-
-    $pSql = str_replace('%pfx%', $cfg['db_prefix'], $pSql);
-    return $kdb->exfetch($pSql, $pRowCount);
+/**
+ * Execute a query and return the item
+ *
+ * @param string  $pQuery  The SQL query to execute.
+ * @param array   $pParams The parameters to bind to the query, if any.
+ *
+ * @return array
+ */
+function dbExFetchAll($pQuery, $pParams = null) {
+    return dbExec($pQuery, $pParams)->fetchAll(PDO::FETCH_ASSOC);
 }
 
 
 /**
- * Execute a query and return the resultSet. To retrieve the values, call dbFetch() with the result.
+ * Executes an, optionally parameterized, SQL query.
  *
- * @param string $pSql
+ * If the query is parameterized, a prepared statement is used.
+ * If an SQLLogger is configured, the execution is logged.
  *
- * @return resultSet
+ * @param string $pQuery  The SQL query to execute.
+ * @param array  $pParams The parameters to bind to the query, if any.
+ *
+ * @return Doctrine\DBAL\Driver\Statement The executed statement.
  */
-function dbExec($pSql) {
-    global $kdb;
-
-    dbConnect();
-
-    $pSql = str_replace('%pfx%', pfx, $pSql);
-
-    $res = $kdb->exec($pSql);
-
-    if (dbError())
-        klog('database', dbError());
-
-    return $res;
+function dbExec($pQuery, $pParams = null) {
+    $pQuery = str_replace('%pfx%', pfx, $pQuery);
+    if (!is_array($pParams) || !$pParams) $pParams = array();
+    return kryn::$em->getConnection()->executeQuery($pQuery, $pParams);
 }
 
 /**
@@ -336,15 +292,10 @@ function dbTableName($pTable){
  */
 function dbInsert($pTable, $pValues) {
 
-    $table = dbQuote(dbTableName($pTable));
-    $values = dbValuesToCommaSeperated($pValues);
+    $table = dbTableName($pTable);
+    $rowsAffected = kryn::$em->getConnection()->insert($table, $pValues);
 
-    $fields = dbQuote($values[0]);
-    $values = $values[1];
-
-    $sql = "INSERT INTO $table ($fields) VALUES ($values)";
-
-    if (dbExec($sql))
+    if ($rowsAffected)
         return dbLastId();
     else
         return false;
@@ -368,26 +319,35 @@ function dbToKeyIndex(&$pItems, $pIndex) {
 }
 
 /**
- * Returns the last occured error if exists
+ * Fetch the SQLSTATE associated with the last database operation.
  *
+ * @global
  * @return mixed
  */
 
 function dbError() {
-    global $kdb;
+    return kryn::$em->getConnection()->errorCode();
+}
 
-    return $kdb->lastError();
+/**
+ * Fetch extended error information associated with the last database operation.
+ *
+ * @global
+ * @return mixed
+ */
+
+function dbErrorInfo() {
+    return kryn::$em->getConnection()->errorInfo();
 }
 
 /**
  * Returns the last_insert_id() (if you use auto_increment/sequences)
  *
+ * @global
  * @return mixed
  */
 function dbLastId() {
-    global $kdb;
-
-    return $kdb->lastId();
+    return kryn::$em->getConnection()->lastInsertId();
 }
 
 
@@ -398,6 +358,7 @@ function dbLastId() {
  * @param string|array $pPrimary Define the limitation as a SQL or as a array ('field' => 'value')
  * @param array        $pFields  Array as a key-value pair. key is the column name and the value is the value. More infos under http://www.kryn.org/docu/developer/framework-database
  *
+ * @global
  * @return type
  */
 function dbUpdate($pTable, $pPrimary, $pFields) {
@@ -419,6 +380,7 @@ function dbUpdate($pTable, $pPrimary, $pFields) {
  * @param string $pTable The table name based on your extension table definition
  * @param string|array $pWhere Do not forget this, otherwise the table will be truncated. You can use array as in
  *
+ * @global
  * @return bool
  */
 function dbDelete($pTable, $pWhere = '') {
@@ -493,8 +455,7 @@ function dbFree($pStatement){
  * @return array
  */
 function dbFetch($pStatement, $pCount = 1) {
-    global $kdb;
-    return $kdb->fetch($pStatement, $pCount);
+    return $pStatement->fetch(PDO::FETCH_ASSOC);
 }
 
 /**
@@ -878,9 +839,11 @@ function dbConditionSingleField($pCondition, $pTable = ''){
  */
 function dbSqlCondition($pTable, $pField, $pValue, $pSign = '=', $pTableAlias = false){
 
-    $columns = database::getOptions($pTable);
+    //$columns = database::getOptions($pTable);
 
-    if ($columns[$pField]['escape'] == 'int')
+    //todo, remove database usage
+
+    if (is_numeric($pValue))
         $value = $pValue+0;
     else
         $value = "'".esc($pValue)."'";
@@ -889,5 +852,3 @@ function dbSqlCondition($pTable, $pField, $pValue, $pSign = '=', $pTableAlias = 
 
 }
 
-
-?>

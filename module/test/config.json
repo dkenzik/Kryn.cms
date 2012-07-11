@@ -1,0 +1,27 @@
+{
+  "title": {
+    "en": "Hi"
+  },
+  "desc": {
+    "en": ""
+  },
+  "tags": {
+    "en": ""
+  },
+  "version": "",
+  "community": "0",
+  "writableFiles": "",
+  "category": "1",
+  "depends": "",
+  "admin": {
+    "test_tester": {
+      "title": "Tester",
+      "type": "custom",
+      "isLink": 1,
+      "multi": 0,
+      "childs": [
+        
+      ]
+    }
+  }
+}

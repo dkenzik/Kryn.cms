@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping https://raw.github.com/doctrine/doctrine2/master/doctrine-mapping.xsd">
+    <entity name="User" table="system_user" >
+
+
+        <id name="id" type="integer">
+            <generator strategy="AUTO" />
+        </id>
+
+        <field name="username" type="string" />
+        <field name="auth_class" type="string" nullable="true" />
+        <field name="passwd" type="string"  nullable="true" />
+        <field name="passwd_salt" type="string" nullable="true" />
+        <field name="activationkey" type="string" nullable="true" />
+        <field name="email" type="string" nullable="true"/>
+        <field name="desktop" type="text" nullable="true" />
+        <field name="settings" type="text" nullable="true" />
+
+
+
+        <field name="created" type="integer" />
+        <field name="modified" type="integer" nullable="true" />
+        <field name="activate" type="boolean" nullable="true" />
+
+        <field name="first_name" type="string" nullable="true" />
+        <field name="last_name" type="string" nullable="true" />
+        <field name="sex" type="integer" nullable="true" />
+        <field name="logins" type="integer" nullable="true" />
+        <field name="lastlogin" type="integer" nullable="true" />
+
+
+    </entity>
+
+</doctrine-mapping>

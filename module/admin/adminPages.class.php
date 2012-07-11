@@ -1455,18 +1455,6 @@ class adminPages {
     public static function updateUrlCacheChilds($pPage, $pDomain = false) {
         $res = array('url' => array(), 'rsn' => array(), 'r2d' => array());
 
-        if ($pPage['type'] == 1) { //link
-            //$realUrl = $pPage['realurl'];
-            //$pPage['realurl'] = $pPage['prealurl'];
-        }
-
-        /*$res['r2d']['rsn='.$pPage['rsn']] = array(
-            'rsn'    => $pDomain['rsn'],
-            'path'   => $pDomain['path'],
-            'domain' => $pDomain['domain'],
-            'master' => $pDomain['master']
-        );*/
-
         if ($pPage['type'] < 2) { //page or link or folder
             if ($pPage['realurl'] != '') {
                 $res['url']['url=' . $pPage['realurl']] = $pPage['rsn'];
@@ -1476,10 +1464,9 @@ class adminPages {
             }
         }
 
-        $pages = dbExfetch("SELECT rsn, title, url, type, link
+        $pages = dbExfetchAll("SELECT rsn, title, url, type, link
                              FROM %pfx%system_pages
-                             WHERE prsn = " . $pPage['rsn'],
-            DB_FETCH_ALL);
+                             WHERE prsn = ?", array($pPage['rsn']+0));
 
         if (is_array($pages)) {
             foreach ($pages as $page) {

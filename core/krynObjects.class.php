@@ -315,7 +315,7 @@ class krynObjects {
 
             } else if ($definition['table']){
 
-                require_once('core/krynObject/krynObjectTable.class.php');
+                require_once('core/krynObjectTable.class.php');
                 self::$instances[$pObjectKey] = new krynObjectTable($pObjectKey, $definition);
             } else {
                 klog('krynObject', 'No class or table defined for object '.$pObjectKey);

@@ -8,7 +8,11 @@ define('PATH_CORE', 'core/');
 define('PATH_MODULE', 'module/');
 define('PATH_MEDIA', 'media/');
 
-@set_include_path( '.' . PATH_SEPARATOR . PATH . 'lib/pear/' . PATH_SEPARATOR . get_include_path());
+function addIncludePath($pPath){
+    @set_include_path( '.' . PATH_SEPARATOR . $pPath. PATH_SEPARATOR . get_include_path());
+}
+
+addIncludePath(PATH.'lib/pear/');
 
 /**
 * Define globals
@@ -20,7 +24,8 @@ $languages = array();
 $kcache = array();
 $_AGET = array();
 $tpl = false;
-@ini_set('error_reporting', E_ERROR | E_WARNING | E_PARSE);
+//@ini_set('error_reporting', E_ERROR | E_WARNING | E_PARSE);
+error_reporting(E_ALL ^ E_NOTICE);
 
 # install
 if (!file_exists('config.php')) {
@@ -46,23 +51,26 @@ include(PATH_CORE.'template.global.php');
 include(PATH_CORE.'internal.global.php');
 include(PATH_CORE.'framework.global.php');
 
-# Load important classes
-include(PATH_CORE.'database.class.php');
-include(PATH_CORE.'kryn.class.php');
-include(PATH_CORE.'krynEvent.class.php');
+spl_autoload_register(function ($class) {
 
-include(PATH_CORE.'krynModule.class.php');
-include(PATH_CORE.'krynObject/krynObjectAbstract.class.php');
-include(PATH_CORE.'krynCache.class.php');
-include(PATH_CORE.'krynAcl.class.php');
-include(PATH_CORE.'krynObject.class.php');
-include(PATH_CORE.'krynObjects.class.php');
-include(PATH_CORE.'krynNavigation.class.php');
-include(PATH_CORE.'krynHtml.class.php');
-include(PATH_CORE.'krynAuth.class.php');
-include(PATH_CORE.'krynFile.class.php');
-include(PATH_CORE.'krynLanguage.class.php');
-include(PATH_CORE.'krynSearch.class.php');
+    if (file_exists(PATH_CORE . $class . '.class.php'))
+        include PATH_CORE . $class . '.class.php';
+    else if (file_exists(PATH_CORE . '/entities/' . $class . '.class.php'))
+        include PATH_CORE . '/entities/' . $class . '.class.php';
+    else if (file_exists('lib/Smarty/' . $class . '.class.php'))
+        include 'lib/Smarty/' . $class . '.class.php';
+    else {
+        foreach (kryn::$extensions as $extension){
+            if (file_exists(PATH_MODULE . $extension.'/'.$class.'.class.php')){
+                include PATH_MODULE . $extension.'/'.$class.'.class.php';
+                break;
+            }
+        }
+
+    }
+});
+
+kryn::$config = $cfg;
 
 date_default_timezone_set($cfg['timezone']);
 
@@ -108,6 +116,47 @@ kryn::initConfig();
  */
 kryn::loadActiveModules();
 
+/*
+ * Init Doctrine
+ */
+include('lib/Doctrine/ORM/Tools/Setup.php');
+
+Doctrine\ORM\Tools\Setup::registerAutoloadDirectory('lib/');
+$paths = array();
+foreach (kryn::$extensions as $extension){
+    if (file_exists(PATH_MODULE . $extension . '/models/'))
+        $paths[] = PATH_MODULE . $extension . '/models/';
+}
+$isDevMode = false;
+
+$pdoDrivers = array(
+    'mysql' => 'pdo_mysql',
+    'sqlite' => 'pdo_sqlite',
+    'postgresql' => 'pdo_pgsql'
+);
+
+$dbDriver = kryn::$config['db_type'];
+
+$dbParams = array(
+    'driver'   => ($pdoDrivers[$dbDriver]?$pdoDrivers[$dbDriver]:$dbDriver),
+    'user'     => kryn::$config['db_user'],
+    'password' => kryn::$config['db_passwd'],
+    'dbname'   => kryn::$config['db_name']
+);
+$evm = new \Doctrine\Common\EventManager;
+require('lib/DoctrineExtensions/TablePrefix.php');
+
+$tablePrefix = new \DoctrineExtensions\TablePrefix(pfx);
+$evm->addEventListener(\Doctrine\ORM\Events::loadClassMetadata, $tablePrefix);
+
+$cache = new Doctrine\Common\Cache\KrynCache();
+
+$config = Doctrine\ORM\Tools\Setup::createXMLMetadataConfiguration($paths, false, false, $cache);
+/*$config->setMetadataCacheImpl($cache);
+$config->setQueryCacheImpl($cache);
+$config->setResultCacheImpl($cache);*/
+
+kryn::$em = \Doctrine\ORM\EntityManager::create($dbParams, $config, $evm);
 
 /*
  * Load current language
