@@ -1071,7 +1071,7 @@ ka.checkMainBarWidth = function () {
                 style: 'display: none'
             }).inject($('border'));
 
-            ka.makeMenu(ka.additionalMainMenu, ka.additionalMainMenuContainer, true, {y: 48, x: -1});
+            ka.makeMenu(ka.additionalMainMenu, ka.additionalMainMenuContainer, true, {y: 40, x: -1});
         }
 
         ka.removedMainMenuItems.each(function (menuitem) {

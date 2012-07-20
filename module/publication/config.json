@@ -26,6 +26,7 @@
       "type": "combine",
       "class": "publicationNewsList",
       "isLink": true,
+      "icon": "#icon-newspaper",
       "multi": true,
       "childs": {
         "add": {

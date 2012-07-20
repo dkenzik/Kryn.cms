@@ -162,6 +162,11 @@ div.mainlinks > a:before {
     font-size: 12px;
 }
 
+ka-mainlink-additionalmenubar-container > a:before {
+    padding-right: 10px;
+    font-size: 12px;
+}
+
 .mainlinks > a,
 .headRight > a,
 .bar-dock-menu-style > a,
