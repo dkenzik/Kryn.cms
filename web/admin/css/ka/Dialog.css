@@ -5,11 +5,10 @@
     top: 0;
     bottom: 0;
     overflow: hidden;
-    background-color: rgba(34, 124, 160,0.2);
+    background-color: rgba(34, 124, 160,0.1);
 }
 
 .ka-dialog {
-
     background-color: #EEE;
     box-shadow: 0px 0px 30px #444;
     position: absolute;
@@ -21,15 +20,38 @@
     max-width: 90%;
 
     overflow: auto;
+    padding: 5px 10px;
+}
 
-    padding: 5px;
-
+.ka-dialog-fixed .ka-dialog,
+.ka-dialog-fixed {
+    position: fixed;
 }
 
 .ka-dialog-bottom {
     position: relative;
-
-    height: 30px;
-
     text-align: right;
+    height: 40px;
+    line-height: 40px;
+    padding: 0 5px;
+}
+
+.ka-dialog-content {
+    padding: 10px 5px;
+}
+
+.ka-dialog-content-absolute {
+    position: absolute;
+    overflow: auto;
+    left: 0;
+    right: 0;
+    bottom: 40px;
+    top: 0;
+}
+
+.ka-dialog-bottom-absolute {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
 }

@@ -382,84 +382,14 @@ ka.Window = new Class({
      *
      * @param  {mixed} pText A string (non html) or an element, that will be injected in the content area.
      *
-     * @param  {Boolean} pAbsoluteContent If we position this absolute or inline.
-     * @return {Element}                  An element with .close(), .center() method, .content and .bottom element.
+     * @param  {Boolean} pAbsoluteContent If we position the content absolute or inline.
+     * @return {ka.Dialog}
      */
     newDialog: function (pText, pAbsoluteContent) {
-
-        var main = new Element('div', {
-            'class': 'ka-kwindow-prompt'
-        }).addEvent('click', function (e) {
-            e.stopPropagation();
+        return new ka.Dialog(this, {
+            content: pText,
+            absolute: pAbsoluteContent
         });
-
-        main.content = new Element('div', {
-            'class': 'ka-kwindow-prompt-text selectable'
-        }).inject(main);
-
-        main.getContentContainer = function(){
-           return main.content;
-        };
-
-        if (typeOf(pText) == 'string'){
-            main.content.set('text', pText);
-        } else if(typeOf(pText) == 'element'){
-            pText.inject(main.content);
-        } else if(typeOf(document.id(pText)) == 'element'){
-            document.id(pText).inject(main.content);
-        }
-
-        if (pAbsoluteContent) {
-            main.content.addClass('ka-kwindow-prompt-text-abs');
-        }
-
-        main.overlay = this.createOverlay();
-
-        main.inject(this.border);
-
-        main.center = function () {
-            var size = this.border.getSize();
-            var dsize = main.getSize();
-            var left = (size.x.toInt() / 2 - dsize.x.toInt() / 2);
-            var mtop = (size.y.toInt() / 2 - dsize.y.toInt() / 2);
-            main.setStyle('left', left);
-            main.setStyle('top', mtop);
-        }.bind(this);
-        this.addEvent('resize', main.center);
-
-        main.canClosed = true;
-
-        main.close = function(pInternal){
-
-            if (pInternal)
-                main.fireEvent('preClose');
-
-            if (!main.canClosed) return;
-
-            main.overlay.destroy();
-            main.dispose();
-            this.removeEvent('resize', main.center);
-
-            if (pInternal)
-                main.fireEvent('close');
-
-            main.destroy();
-
-        }.bind(this);
-
-        main.bottom = new Element('div', {
-            'class': 'ka-kwindow-prompt-bottom'
-        }).inject(main);
-
-
-        main.getBottomContainer = function(){
-            return main.bottom;
-        };
-
-        main.center();
-
-        return main;
-
     },
 
     parseTitle: function (pHtml) {
@@ -559,7 +489,11 @@ ka.Window = new Class({
         if (!this.hotkeyBinds) this.hotkeyBinds = [];
 
         var bind = function(e){
-            if (document.activeElement && document.activeElement.get('tag') != 'body') return;
+            if (document.activeElement){
+                if (document.activeElement.get('tag') != 'body' && !document.activeElement.hasClass('ka-Button')){
+                    return;
+                }
+            }
             if (this.isInFront() && (!this.inOverlayMode)) {
 
                 if (pControlOrMeta && (!e.control && !e.meta)) return;
@@ -692,12 +626,16 @@ ka.Window = new Class({
         //search for dialogs
         if (this.border){
             var dialogs = this.border.getChildren('.ka-kwindow-prompt');
+            if (!dialogs || !dialogs.length){
+                dialogs = this.border.getChildren('.ka-dialog-overlay');
+            }
             if (dialogs.length > 0){
 
                 var lastDialog = dialogs[dialogs.length-1];
+                if (lastDialog.kaDialog) lastDialog = lastDialog.kaDialog;
 
                 if (lastDialog.canClosed === false) return;
-                lastDialog.close(true);
+                lastDialog.closeAnimated(true);
 
                 delete lastDialog;
                 return false;
@@ -721,31 +659,22 @@ ka.Window = new Class({
         }
 
 
-        //save dimension
         if (this.border) {
-
             if (this.getEntryPoint() == 'users/users/edit/') {
                 ka.loadSettings();
             }
-
             this.border.getElements('a.kwindow-win-buttonWrapper').each(function (button) {
                 if (button.toolTip && button.toolTip.main) {
                     button.toolTip.main.destroy();
                 }
             });
-
-            this.border.destroy();
         }
-
         this.inFront = false;
-
         this.destroy();
-
         ka.wm.close(this);
     },
 
     destroy: function(){
-
         this.removeHotkeys();
 
         if (window['contentCantLoaded_' + this.customId])
@@ -777,7 +706,7 @@ ka.Window = new Class({
             delete this.customJsClassAsset;
         }
 
-
+        this.border.destroy();
     },
 
     getEntryPoint: function(){
@@ -989,14 +918,9 @@ ka.Window = new Class({
     },
 
     createWin: function () {
-
         this.border = new Element('div', {
             'class': 'ka-admin kwindow-border  mooeditable-dialog-container'
-        }).addEvent('mousedown', function (e) {
-            if (this.mouseOnShadow != true) {
-                this.toFront();
-            }
-        }.bind(this));
+        });
 
         this.border.windowInstance = this;
 
