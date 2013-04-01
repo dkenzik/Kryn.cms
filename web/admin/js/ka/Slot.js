@@ -65,7 +65,8 @@ ka.Slot = new Class({
         this.lastRq = new Request.JSON({url: _path+'admin/object/Core.Content', noCache: true,
         onComplete: this.renderContents.bind(this)}).get({
             _boxId: this.slotParams.id,
-            _nodeId: this.options.nodePk
+            _nodeId: this.options.nodePk,
+            order: {sort: 'asc'}
         });
 
     },
