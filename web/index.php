@@ -17,12 +17,12 @@
  */
 
 //load main config, setup some constants and check some requirements.
-require(__DIR__.'/../core/bootstrap.php');
+require(__DIR__ . '/../core/bootstrap.php');
 
 Core\Kryn::checkStaticCaching();
 
 //attach error handler, init propel, load module configs, initialise main controllers and setup the autoloader.
-require(__DIR__.'/../core/bootstrap.startup.php');
+require(__DIR__ . '/../core/bootstrap.startup.php');
 
 Core\Kryn::getLogger()->addDebug('Bootstrap loaded.');
 

@@ -170,8 +170,9 @@ a.ka-main-menu-item,
 a.ka-main-menu-item:link {
     line-height: 16px;
     padding: 8px 24px;
+    padding-left: 35px;
     color: #003366;
-    text-shadow: 0px 1px 0px #eee;
+    text-shadow: 0px 1px 0px #e4e4e4;
     text-decoration: none;
     display: block;
     cursor: pointer;
@@ -246,18 +247,20 @@ div.ka-mainLinks a.bar-dock-logo {
     border: 0px
 }
 
-.ka-main-menu [class^="icon-"]:before,
-.ka-main-menu [class*=" icon-"]:before {
+.ka-mainLinks [class^="icon-"]:before,
+.ka-mainLinks [class*=" icon-"]:before {
     padding-right: 7px;
     color: #414A53;
     font-size: 14px;
     line-height: 14px;
     vertical-align: text-top;
+    position: absolute;
+    left: 15px;
 }
 
 .ka-main-menu-headline {
     color: #2B4552;
-    text-shadow: 0 1px 0 #F5EFEF;
+    text-shadow: 0 1px 0 #DFDFDF;
     text-transform: uppercase;
     padding: 6px 13px;
     margin: 0;
@@ -269,7 +272,7 @@ div.ka-mainLinks a.bar-dock-logo {
 .ka-main-menu-splitter {
     height: 1px;
     border-top: 1px solid #9E9E9E;
-    background-color: #F7F7F7;
+    background-color: #ECECEC;
     margin: 6px 0;
 }
 
@@ -290,7 +293,6 @@ a.ka-main-menu-item:active {
     border-left: 0px;
 }
 
-
 .ka-main-menu-item-window-information-container {
     position: absolute;
     left: 0;
@@ -304,11 +306,14 @@ a.ka-main-menu-item:active {
 
 a.ka-main-menu-item-active,
 a.ka-main-menu-item-active:link,
-.ka-main-menu a.ka-main-menu-item-active:before,
 a.ka-main-menu-item-active:hover {
     background-color: #2F8CBD;
     color: white;
     text-shadow: 0 1px 0 #444;
+}
+
+.ka-main-menu a.ka-main-menu-item-active:before {
+    background-color: transparent;
 }
 
 .ka-main-menu-item-window-information-item {

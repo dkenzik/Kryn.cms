@@ -62,11 +62,11 @@ ka.FieldTable = new Class({
             'class': 'ka-Table-body'
         }).inject(this.main);
 
-        new ka.Button(this.options.addLabel)
-        .addEvent('click', function(){
-            this.add(null,null, this.itemContainer);
-        }.bind(this))
-        .inject(this.main);
+        new ka.Button([this.options.addLabel, '#icon-plus-5'])
+            .addEvent('click', function(){
+                this.add(null, null, this.itemContainer);
+            }.bind(this))
+            .inject(this.main);
 
     },
 

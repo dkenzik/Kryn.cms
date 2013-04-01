@@ -18,7 +18,6 @@ ka.FieldTypes.Codemirror = new Class({
             this.editorPanel.setStyle('width', this.options.inputWidth);
 
         if (this.options.inputHeight){
-
             var cssClassName = 'codemirror_'+(new Date()).getTime()+'_'+Number.random(0, 10000)+'_'+Number.random(0, 10000);
 
             if (typeOf(this.options.inputHeight) == 'number' || !this.options.inputHeight.match('[^0-9]')){
@@ -30,7 +29,6 @@ ka.FieldTypes.Codemirror = new Class({
             });
 
             this.editorPanel.addClass(cssClassName);
-
         }
 
         var options = {

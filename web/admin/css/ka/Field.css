@@ -11,8 +11,8 @@
 
 .ka-field-tdtitle,
 .ka-field-inputTd {
-    border-bottom: 1px solid #d7d7d7;
-    border-top: 1px solid #fafafa;
+    border-bottom: 1px solid #E0E0E0;
+    border-top: 1px solid #F7F7F7;
     vertical-align: top;
     padding: 2px 4px;
 }
@@ -303,11 +303,9 @@ input.ka-field-dateTime {
     display: none;
 }
 
-
-
 .ka-field-invalid-icon {
     position: absolute;
-    top: 4px;
+    top: 9px;
     left: -22px;
     margin-left: 2px;
     font-size: 14px;

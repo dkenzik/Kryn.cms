@@ -51,8 +51,3 @@
     left: 225px;
     top: 4px;
 }
-
-.admin-system-modules-edit-pane .ka-Table-head > tr > th,
-.admin-system-modules-edit-pane .ka-Table-body > tr > td {
-    padding: 1px;
-}

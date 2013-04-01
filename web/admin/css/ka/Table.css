@@ -55,24 +55,23 @@
 .ka-Table-alignTop > div > .ka-Table-body > tr > td {
     vertical-align: top;
 }
+
 .ka-Table-body > tr > td {
     padding: 3px;
     cursor: default;
     overflow-x: hidden;
     text-overflow: ellipsis;
-    line-height: 26px;
 }
 
-.ka-Table-body > tr.one > td {
+.ka-Table-body > tr:nth-child(1n) > td {
     background-color: #f4f4f4;
 }
 
-.ka-Table-body > tr.two > td {
+.ka-Table-body > tr:nth-child(2n) > td {
     background-color: #e8e8e8;
 }
 
-.ka-Table-hover > div > .ka-Table-body > tr.one:hover > td,
-.ka-Table-hover > div > .ka-Table-body > tr.two:hover > td {
+.ka-Table-hover > div > .ka-Table-body > tr:hover > td {
     background-color: #ccc;
 }
 
