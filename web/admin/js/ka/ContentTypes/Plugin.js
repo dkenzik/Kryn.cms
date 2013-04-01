@@ -31,30 +31,30 @@ ka.ContentTypes.Plugin = new Class({
     },
 
     openDialog: function(){
-
         this.dialog = new ka.Dialog(this.main.getDocument().body, {
             title: t('Edit plugin'),
-            minWidth: '50%',
-            minHeight: '50%'
+            minWidth: '80%',
+            minHeight: '80%',
+            fixed: true,
+            absolute: true,
+            withButtons: true
         });
 
-        this.cancelBtn = this.dialog.addButton('Cancel').addEvent('click', this.dialog.close);
-        this.saveBtn   = this.dialog.addButton('Apply').setButtonStyle('blue').addEvent('click', this.applyValue);
+        this.dialog.addEvent('apply', function(){
+            this.applyValue();
+        }.bind(this));
 
         this.dialogPluginChoser = new ka.Field({
             type: 'plugin'
-        }, this.dialog);
+        }, this.dialog.getContentContainer());
 
         this.dialogPluginChoser.setValue(this.value);
 
         this.dialogPluginChoser.addEvent('change', function(){
-            this.dialog.fixBottom();
             this.dialog.center();
         }.bind(this));
 
-        this.dialog.fixBottom();
-        this.dialog.center();
-
+        this.dialog.center(true);
     },
 
     applyValue: function(){
@@ -83,6 +83,7 @@ ka.ContentTypes.Plugin = new Class({
         if (typeOf(pValue) == 'string' && JSON.validate(pValue)){
             return JSON.decode(pValue);
         }
+        if (typeOf(pValue) != 'string') return {};
 
         var module  = pValue.substr(0, pValue.indexOf('::'));
         var plugin  = pValue.substr(module.length+2, pValue.substr(module.length+2).indexOf('::'));

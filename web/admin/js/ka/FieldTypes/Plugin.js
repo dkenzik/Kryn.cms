@@ -65,7 +65,6 @@ ka.FieldTypes.Plugin = new Class({
         var i = 0;
         this.fieldForm.addEvent('change', function(){
 
-            logger('CHANGE: '+(i++));
             this.pluginPropertyContainer.getChildren().destroy();
             var module = this.fieldForm.getValue('module');
             var plugin = this.fieldForm.getValue('plugin['+module+']');
@@ -132,6 +131,8 @@ ka.FieldTypes.Plugin = new Class({
         if (typeOf(pValue) == 'string' && JSON.validate(pValue)){
             return JSON.decode(pValue);
         }
+
+        if (typeOf(pValue) != 'string') return {};
 
         var module  = pValue.substr(0, pValue.indexOf('::'));
         var plugin  = pValue.substr(module.length+2, pValue.substr(module.length+2).indexOf('::'));
