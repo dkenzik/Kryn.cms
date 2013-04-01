@@ -4,7 +4,7 @@
     top: 0px;
     left: 0px;
     right: 0px;
-    bottom: 30px;
+    bottom: 40px;
     overflow: auto;
     background-color: #eee;
 }
@@ -79,10 +79,10 @@
     position: absolute;
     left: 0px;
     right: 0px;
-    height: 30px;
+    height: 40px;
     bottom: 0px;
     border-top: 1px solid gray;
-    line-height: 30px;
+    line-height: 40px;
     background-color: #aaa;
 
     border-top: 1px solid #999;
@@ -108,8 +108,8 @@
 
 .kwindow-border .ka-windowEdit-removeButton {
     position: absolute;
-    left: 2px;
-    top: 2px;
+    left: 4px;
+    top: 7px;
 }
 
 .kwindow-border .ka-windowEdit-previewButton,

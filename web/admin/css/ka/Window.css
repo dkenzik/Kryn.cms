@@ -157,13 +157,15 @@
     color: #111;
 }
 
-.kwindow-win-buttonBar {
+.kwindow-win-buttonBar,
+.window-bottom-bar {
     position: absolute;
     bottom: 0px;
     left: 0px;
     right: 0px;
-    height: 30px;
-    line-height: 30px;
+    height: 40px;
+    line-height: 40px;
+    border-top: 1px solid silver;
 
     background: #dbdbdb; /* Old browsers */
     /* IE9 SVG, needs conditional override of 'filter' to 'none' */
@@ -175,10 +177,9 @@
     background: -ms-linear-gradient(top,  #dbdbdb 0%,#d8d8d8 47%,#b5b5b5 100%); /* IE10+ */
     background: linear-gradient(top,  #dbdbdb 0%,#d8d8d8 47%,#b5b5b5 100%); /* W3C */
     filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#dbdbdb', endColorstr='#b5b5b5',GradientType=0 ); /* IE6-8 */
-    border-top: 1px solid silver;
 
     text-align: right;
-    padding-right: 2px;
+    padding-right: 4px;
 }
 
 
@@ -291,7 +292,7 @@
     top: 20px;
     width: 230px;
     background-color: #eee;
-    box-shadow: 0px 0px 30px #444;
+    box-shadow: 0px 8px 15px #666;
 }
 
 

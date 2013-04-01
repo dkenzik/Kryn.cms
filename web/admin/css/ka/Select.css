@@ -1,6 +1,7 @@
 .ka-Select-wrapper {
     position: relative;
-    min-height: 22px;
+    min-height: 26px;
+    line-height: 26px;
 }
 
 .ka-Select-wrapper > .ka-Select-box {
@@ -20,9 +21,8 @@
     position: relative;
 
     overflow: hidden;
-    height: 22px;
     display: inline-block;
-    line-height: 22px;
+    line-height: 24px;
 
     vertical-align: top;
     min-width: 40px;
