@@ -372,8 +372,6 @@ ka.FieldProperty = new Class({
 
         this.prepareFields();
 
-        logger('init ka.FieldProperty');
-
         this._createLayout();
     },
 
@@ -414,7 +412,6 @@ ka.FieldProperty = new Class({
 
         }
 
-
         if (this.options.asFrameworkSearch){
             delete this.kaFields.__optional__.children.empty;
             delete this.kaFields.__optional__.children.target;
@@ -431,7 +428,6 @@ ka.FieldProperty = new Class({
             delete this.kaFields.type.items.wysiwyg;
             delete this.kaFields.type.items.array;
             delete this.kaFields.type.items.tab;
-
         }
 
         if (this.options.asFrameworkColumn){
@@ -648,10 +644,11 @@ ka.FieldProperty = new Class({
 
     openProperties: function(){
 
-        this.dialog = this.win.newDialog('', true);
-
-        this.dialog.setStyle('width', '90%');
-        this.dialog.setStyle('height', '90%');
+        this.dialog = new ka.Dialog(this.win, {
+            absolute: true,
+            minWidth: '90%',
+            minHeight: '90%',
+        });
 
         /*if (!this.options.withTableDefinition) {
             var headerInfo = new Element('div', {
@@ -661,7 +658,7 @@ ka.FieldProperty = new Class({
             }).inject(this.header);
         }*/
 
-        var main = new Element('div', {'class': 'ka-fieldTable-definition', style: 'background-color: #e5e5e5'}).inject(this.dialog.content);
+        var main = new Element('div', {'class': 'ka-fieldTable-definition'}).inject(this.dialog.content);
 
         var fieldContainer;
 
@@ -693,14 +690,11 @@ ka.FieldProperty = new Class({
         }
 
         new ka.Button(t('Cancel'))
-        .addEvent('click', this.dialog.close)
+        .addEvent('click', function(){ this.dialog.closeAnimated(); }.bind(this))
         .inject(this.dialog.bottom);
 
-
         this.saveBtn.addEvent('click', function(){
-
             if (!this.fieldObject.checkValid()){
-
                 return;
             }
 
@@ -715,8 +709,7 @@ ka.FieldProperty = new Class({
         .setButtonStyle('blue')
         .inject(this.dialog.bottom);
 
-        this.dialog.center();
-
+        this.dialog.center(true);
         return;
     },
 
