@@ -2,12 +2,16 @@ ka.Button = new Class({
 
     $eventsBackuper: null,
 
+    /**
+     * @constructor
+     * @param {String|Array} pTitle A string or a array. With the array you can define a icon: ['title', '#icon-add']
+     * @param {String}       pOnClick
+     * @param {String}       pTooltip
+     */
     initialize: function (pTitle, pOnClick, pTooltip) {
         this.main = new Element('a', {
             'class': 'ka-Button',
-            href: '#',
-            onclick: "return false;",
-            text: (typeOf(pTitle) == 'string') ? pTitle : '',
+            href: 'javascript:;',
             title: (pTooltip) ? pTooltip : null
         });
 
