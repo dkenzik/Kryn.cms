@@ -49,6 +49,10 @@
     top: 0;
 }
 
+.ka-dialog-content-no-bottom {
+    bottom: 0;
+}
+
 .ka-dialog-bottom-absolute {
     position: absolute;
     left: 0;

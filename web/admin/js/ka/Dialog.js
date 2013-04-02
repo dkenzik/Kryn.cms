@@ -15,9 +15,12 @@ ka.Dialog = new Class({
         cancelButton: true,
         applyButton: true,
         withButtons: false,
+        noBottom: false,
 
         absolute: false,
         fixed: false,
+
+        autoDisplay: true,
 
         animatedTransition: Fx.Transitions.Cubic.easeOut,
         animatedTransitionOut: Fx.Transitions.Cubic.easeIn,
@@ -49,7 +52,10 @@ ka.Dialog = new Class({
     renderLayout: function(){
         this.overlay = new Element('div', {
             'class': 'ka-admin ka-dialog-overlay'
-        }).inject(this.container);
+        })
+
+        if (this.options.autoDisplay)
+            this.overlay.inject(this.container);
 
         this.overlay.kaDialog = this;
 
@@ -72,20 +78,24 @@ ka.Dialog = new Class({
                 this.main.setStyle(item, this.options[item]);
         }.bind(this));
 
-        this.bottom = new Element('div', {
-            'class': 'ka-dialog-bottom'
-        }).inject(this.main);
+        if (!this.options.noBottom){
+            this.bottom = new Element('div', {
+                'class': 'ka-dialog-bottom'
+            }).inject(this.main);
+        }
 
         if (this.options.fixed){
             this.overlay.addClass('ka-dialog-fixed');
         }
 
         if (this.options.absolute){
-            this.bottom.addClass('ka-dialog-bottom-absolute');
+            if (this.bottom) this.bottom.addClass('ka-dialog-bottom-absolute');
             this.content.addClass('ka-dialog-content-absolute');
+            if (this.options.noBottom)
+                this.content.addClass('ka-dialog-content-no-bottom');
         }
 
-        if (this.options.withButtons){
+        if (this.options.withButtons && this.bottom){
             if (this.options.cancelButton){
                 this.cancelButton = this.addButton(t('Cancel'))
                     .addEvent('click', function(){
@@ -173,6 +183,7 @@ ka.Dialog = new Class({
             this.fxOut.addEvent('complete', function(){
                 this.overlay.destroy();
                 if (this.lastFocusedElement) this.lastFocusedElement.focus();
+                this.fireEvent('postClose');
             }.bind(this));
 
             this.fxOut.start({
@@ -218,6 +229,11 @@ ka.Dialog = new Class({
      * @param {Boolean} pAnimated position the dialog out of the viewport and animate it into it.
      */
     center: function(pAnimated){
+        if (!this.overlay.getParent()){
+            if (this.options.autoDisplay)
+                this.overlay.inject(this.container);
+        }
+
         var size = this.container.getSize();
         var dsize = this.main.getSize();
 

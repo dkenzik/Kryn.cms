@@ -294,7 +294,7 @@ ka.FieldTypes.Object = new Class({
         var button = new ka.Button(t('Add')).addEvent('click', function () {
 
             if (this.options.designMode) return;
-            ka.wm.openWindow('admin/backend/chooser', null, -1, chooserParams);
+            ka.wm.open('admin/backend/chooser', chooserParams, -1, true);
 
         }.bind(this));
 

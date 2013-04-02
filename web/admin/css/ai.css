@@ -146,6 +146,7 @@ span.selectable span, div.selectable div {
     right: 0;
     top: 0;
     height: 50px;
+    border-top: 1px solid #EBEBEB;
 }
 
 div.ka-main-menu-additional img.arrowUp:hover {

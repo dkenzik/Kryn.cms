@@ -14,7 +14,7 @@ ka.wm = {
 
     openWindow: function (pEntryPoint, pLink, pParentWindowId, pParams, pInline) {
         var win;
-        if (win = this.checkOpen(pEntryPoint)) {
+        if (win = this.checkOpen(pEntryPoint) && !pInline) {
             return win.toFront();
         }
 
@@ -37,6 +37,15 @@ ka.wm = {
         }
     },
 
+    /**
+     * Open a new entry point. (e.g. Window)
+     *
+     * @param {String}  pEntryPoint
+     * @param {Object}  pParams
+     * @param {Integer} pParentWindowId
+     * @param {Boolean} pInline True to open the target in a dialog container (ka.Dialog).
+     * @returns {*}
+     */
     open: function (pEntryPoint, pParams, pParentWindowId, pInline) {
         return ka.wm.openWindow(pEntryPoint, null, pParentWindowId, pParams, pInline);
     },
@@ -79,26 +88,19 @@ ka.wm = {
     loadWindow: function (pEntryPoint, pLink, pParentWindowId, pParams, pInline) {
         var instance = Object.getLength(ka.wm.windows) + 1;
 
-        if (pParentWindowId == -1)
-            pParentWindowId = ka.wm.lastWindow?ka.wm.lastWindow.id:false;
+        if (pParentWindowId == -1){
+            pParentWindowId = ka.wm.lastWindow ? ka.wm.lastWindow.id : false;
+        }
 
         if (pParentWindowId && !ka.wm.getWindow(pParentWindowId)) throw 'Parent window not found.';
 
-        if (pParentWindowId && pInline) {
-            ka.wm.getWindow(pParentWindowId).prepareInlineContainer();
-        }
-
         ka.wm.windows[instance] = new ka.Window(pEntryPoint, pLink, instance, pParams, pInline, pParentWindowId);
         ka.wm.windows[instance].toFront();
-        if (pParentWindowId){
-            ka.wm.getWindow(pParentWindowId).setChildren(ka.wm.windows[instance]);
-        }
         ka.wm.updateWindowBar();
         ka.wm.reloadHashtag();
     },
 
     close: function (pWindow) {
-
         var parent = pWindow.getParentId();
         if (parent){
             parent = ka.wm.getWindow(parent);
@@ -199,11 +201,10 @@ ka.wm = {
     },
 
     reloadHashtag: function(pForce){
-
         var hash = '';
 
         Object.each(ka.wm.windows, function (win) {
-            if (win.isInFront()){
+            if (win.isInFront() && !win.isInline()){
                 hash = win.getEntryPoint()+( win.getParameter() ? '!'+JSON.encode(win.getParameter()) : '' );
             }
         });
@@ -211,7 +212,6 @@ ka.wm = {
         if (hash != window.location.hash){
             window.location.hash = hash;
         }
-
     },
 
     handleHashtag: function(pForce){
