@@ -162,14 +162,16 @@ ka.wm = {
         Object.each(ka.wm.windows, function (win) {
 
             if (win.getParentId()) return;
-            ka.wm.addActiveWindowInformation(win);
+            var menuItem = ka.adminInterface.getMenuItem(win.getEntryPoint());
+
+            if (menuItem) {
+                menuItem.object.addClass('ka-main-menu-item-open');
+            }
 
             if (win.isInFront()){
 
                 if (win.getEntryPoint() == 'admin/nodes/frontend')
                     return ka.adminInterface.frontendLink.addClass('ka-main-menu-item-active');
-
-                var menuItem = ka.adminInterface.getMenuItem(win.getEntryPoint());
 
                 atLeastOneActive = true;
                 if (menuItem) {
@@ -237,28 +239,8 @@ ka.wm = {
     },
 
     removeActiveWindowInformation: function(){
-
         ka.adminInterface.mainLinks.getElements('a').removeClass('ka-main-menu-item-active');
-
-        Array.each(ka.wm.activeWindowInformation, function(entryPoint){
-            var menuItem = ka.adminInterface.getMenuItem(entryPoint);
-            menuItem.object.knob.destroy();
-            delete menuItem.object.knob;
-        });
-        ka.wm.activeWindowInformation = [];
-    },
-
-    addActiveWindowInformation: function(pWin){
-        var menuItem = ka.adminInterface.getMenuItem(pWin.getEntryPoint());
-
-        if (menuItem && !menuItem.object.knob){
-            menuItem.object.knob = new Element('span', {
-                html: '&bullet;',
-                'class': 'ka-main-menu-item-active-window-information-item'
-            }).inject(menuItem.object.activeWindowInformationContainer);
-
-            ka.wm.activeWindowInformation.push(pWin.getEntryPoint());
-        }
+        ka.adminInterface.mainLinks.getElements('a').removeClass('ka-main-menu-item-open');
     },
 
     checkOpen: function (pEntryPoint, pInstanceId, pParams) {
