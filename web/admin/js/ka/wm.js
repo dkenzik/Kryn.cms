@@ -14,7 +14,7 @@ ka.wm = {
 
     openWindow: function (pEntryPoint, pLink, pParentWindowId, pParams, pInline) {
         var win;
-        if (win = this.checkOpen(pEntryPoint) && !pInline) {
+        if ((win = this.checkOpen(pEntryPoint)) && !pInline) {
             return win.toFront();
         }
 
