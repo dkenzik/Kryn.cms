@@ -33,9 +33,9 @@ body.hide-scrollbar {
 
 .kryn_cke_toolbar {
     position: absolute !important;
-    top: 0 !important;
-    left: 220px !important;
-    right: 0 !important;
+    top: 39px !important;
+    left: 221px !important;
+    right: 6px !important;
     width: auto !important;
 }
 
