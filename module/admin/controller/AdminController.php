@@ -385,7 +385,6 @@ class AdminController
     }
 
     public static function addCssResources(){
-
         $response = Kryn::getResponse();
 
         $response->addCssFile('admin/icons/style.css');
@@ -410,6 +409,8 @@ class AdminController
         $response->addJsFile('admin/js/ka/Select.js');
         $response->addJsFile('admin/js/ka/Checkbox.js');
         self::addSessionScripts();
+
+        $response->setFavicon('admin/images/favicon.ico');
 
         $response->addJs("
         window.addEvent('domready', function(){
